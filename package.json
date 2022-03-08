@@ -1,0 +1,27 @@
+{
+  "name": "liri_bot",
+  "version": "1.0.0",
+  "description": "In this assignment, you will make LIRI. LIRI is like iPhone's SIRI. However, while SIRI is a Speech Interpretation and Recognition Interface, LIRI is a _Language_ Interpretation and Recognition Interface. LIRI will be a command line node app that takes in parameters and gives you back data.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshuaFkelly/Liri_Bot.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joshuaFkelly/Liri_Bot/issues"
+  },
+  "homepage": "https://github.com/joshuaFkelly/Liri_Bot#readme",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "dotenv": "^16.0.0",
+    "moment": "^2.29.1",
+    "node-spotify-api": "^1.1.1"
+  }
+}
