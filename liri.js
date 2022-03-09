@@ -129,12 +129,9 @@ switch (expr) {
       if (err) {
         console.log(new Error(err));
       }
-      console.log(data);
       const randomTxt = data.split(',');
       const randomCommand = randomTxt[0];
       const randomValue = randomTxt[1];
-      console.log('Command: ', randomCommand);
-      console.log('Value: ', randomValue);
     });
     break;
   default:
