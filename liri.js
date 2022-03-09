@@ -1,15 +1,22 @@
 // read and set any environment variables with the dotenv package
 require('dotenv').config();
+
+// Require Axios for get requests
 const axios = require('axios');
+
 // require Spotify Package installed in npm
 const Spotify = require('node-spotify-api');
+
 // import momentJS to format dat/time
 const moment = require('moment');
+
 // import the keys.js file that holds SPOTIFY API info
 const keys = require('./keys.js');
 
 // access keys information
 const spotify = new Spotify(keys.spotify);
+const omdb = keys.omdb;
+const bandsInTown = keys.bandsInTown;
 
 // Spotify promise callback
 const displaySpotify = (res) => {
@@ -22,32 +29,36 @@ const displaySpotify = (res) => {
 const expr = process.argv.slice(2, 3).toString();
 const song = process.argv.slice(3).join(' ').toString();
 const band = process.argv.slice(3).join('').toString();
-console.log(band);
+const movie = process.argv.slice(3).join('+').toString();
 
 switch (expr) {
+  // search Spotify
   case 'spotify-this-song':
-    // search Spotify
     spotify
       .search({ type: 'track', query: song, limit: 1 })
       .then(displaySpotify)
       .catch((err) => console.log(new Error(err)));
     break;
+
+  // search bands in town
   case 'concert-this':
     axios
       .get(
-        `https://rest.bandsintown.com/artists/${band}/events?app_id=codingbootcamp`
+        `https://rest.bandsintown.com/artists/${band}/events?app_id=${bandsInTown}`
       )
       .then((res) => {
-        // handle success
+        // Handle Success
         return res.data;
       })
       .catch((err) => {
-        // handle err
+        // Handle err
         console.log(err);
       })
+      // Do After
       .then((data) => {
         return data;
       })
+      // Do After
       .then((events) => {
         events.forEach((event, i) => {
           console.log('-----------------------------------------');
@@ -61,6 +72,41 @@ switch (expr) {
         });
       });
     break;
+
+  // search omdb
+  case 'movie-this':
+    axios
+      .get(`http://www.omdbapi.com/?t=${movie}&apikey=${omdb}`)
+      .then((res) => {
+        // Handle Success
+        return res.data;
+      })
+      .catch((err) => {
+        // Handle err
+        console.log(err);
+      })
+      // Do After
+      .then((data) => {
+        console.log(`
+Title: ${data.Title}
+
+Release year: ${data.Year}
+
+Movie Ratings: 
+  - imdbRating: ${data.imdbRating}
+  - ${data.Ratings[0].Source}: ${data.Ratings[0].Value}
+  - ${data.Ratings[1].Source}: ${data.Ratings[1].Value}
+
+Country: ${data.Country}
+
+Language: ${data.Language}
+
+Plot: ${data.Plot}
+
+Actors: ${data.Actors}`);
+      });
+    break;
+
   default:
     console.log(`Could not evaluate command: ${expr}`);
 }
