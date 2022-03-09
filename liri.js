@@ -39,6 +39,7 @@ const displayConcert = (events) => {
   events.forEach((event, i) => {
     console.log(`
 ---------------------------------------------------------
+
 id: ${i}
 
 Venue Name: ${event.venue.name}
@@ -72,15 +73,13 @@ Actors: ${data.Actors}`);
 
 // argument variables from command line
 const expr = process.argv.slice(2, 3).toString();
-const song = process.argv.slice(3).join(' ').toString();
-const band = process.argv.slice(3).join('').toString();
-const movie = process.argv.slice(3).join('+').toString();
+const topic = process.argv.slice(3).join('').toString();
 
 switch (expr) {
   // search Spotify
   case 'spotify-this-song':
     spotify
-      .search({ type: 'track', query: song, limit: 1 })
+      .search({ type: 'track', query: topic, limit: 1 })
       .then((res) => res.tracks.items[0])
       .catch((err) => console.log(new Error(err)))
       .then(displaySpotify);
@@ -90,7 +89,7 @@ switch (expr) {
   case 'concert-this':
     axios
       .get(
-        `https://rest.bandsintown.com/artists/${band}/events?app_id=${bandsInTown}`
+        `https://rest.bandsintown.com/artists/${topic}/events?app_id=${bandsInTown}`
       )
       .then((res) => {
         // Handle Success
@@ -111,7 +110,7 @@ switch (expr) {
   // search omdb
   case 'movie-this':
     axios
-      .get(`http://www.omdbapi.com/?t=${movie}&apikey=${omdb}`)
+      .get(`http://www.omdbapi.com/?t=${topic}&apikey=${omdb}`)
       .then((res) => {
         // Handle Success
         return res.data;
@@ -124,6 +123,7 @@ switch (expr) {
       .then(displayMovie);
     break;
 
+  // use command inside random.txt
   case 'do-what-it-says':
     fs.readFile('./random.txt', 'utf-8', (err, data) => {
       if (err) {
@@ -131,7 +131,59 @@ switch (expr) {
       }
       const randomTxt = data.split(',');
       const randomCommand = randomTxt[0];
-      const randomValue = randomTxt[1];
+      const topic = randomTxt[1];
+
+      switch (randomCommand) {
+        // search Spotify
+        case 'spotify-this-song':
+          spotify
+            .search({ type: 'track', query: topic, limit: 1 })
+            .then((res) => res.tracks.items[0])
+            .catch((err) => console.log(new Error(err)))
+            .then(displaySpotify);
+          break;
+
+        // search bands in town
+        case 'concert-this':
+          axios
+            .get(
+              `https://rest.bandsintown.com/artists/${topic}/events?app_id=${bandsInTown}`
+            )
+            .then((res) => {
+              // Handle Success
+              return res.data;
+            })
+            .catch((err) => {
+              // Handle err
+              console.log(err);
+            })
+            // Do After
+            .then((data) => {
+              return data;
+            })
+            // Do After
+            .then(displayConcert);
+          break;
+
+        // search omdb
+        case 'movie-this':
+          axios
+            .get(`http://www.omdbapi.com/?t=${topic}&apikey=${omdb}`)
+            .then((res) => {
+              // Handle Success
+              return res.data;
+            })
+            .catch((err) => {
+              // Handle err
+              console.log(err);
+            })
+            // Do After
+            .then(displayMovie);
+          break;
+
+        default:
+          console.log(`Could not evaluate command: ${expr}`);
+      }
     });
     break;
   default:
