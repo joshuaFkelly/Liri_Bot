@@ -14,7 +14,6 @@ const moment = require('moment');
 
 // import the keys.js file that holds SPOTIFY API info
 const keys = require('./keys.js');
-const exp = require('constants');
 
 // access keys information
 const spotify = new Spotify(keys.spotify);
@@ -73,7 +72,7 @@ Actors: ${data.Actors}`);
 
 // argument variables from command line
 const expr = process.argv.slice(2, 3).toString();
-const topic = process.argv.slice(3).join('').toString();
+const topic = process.argv.slice(3).join(' ').toString();
 
 switch (expr) {
   // search Spotify
@@ -189,3 +188,9 @@ switch (expr) {
   default:
     console.log(`Could not evaluate command: ${expr}`);
 }
+
+fs.appendFile('log.txt', `${expr},${topic};`, (err) => {
+  if (err) {
+    console.log(new Error(err));
+  }
+});
