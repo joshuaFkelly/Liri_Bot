@@ -16,36 +16,28 @@ const moment = require('moment');
 const keys = require('./keys.js');
 
 // access keys information
-const spotify = new Spotify(keys.spotify);
 const omdb = keys.omdb;
 const bandsInTown = keys.bandsInTown;
 
-// callback to display spotify info
-const displaySpotify = (data) => {
-  console.log(`
-Artist(s): ${data.artists[0].name}
-
-Song Name: ${data.name}
-
-Preview Link: ${data.preview_url}
-
-Album Name: ${data.album.name}
-  `);
-};
+// argument variables from command line
+const expr = process.argv.slice(2, 3).toString();
+const topic = process.argv.slice(3).join(' ').toString();
 
 // callback to display concert info
 const displayConcert = (events) => {
   events.forEach((event, i) => {
-    console.log(`
----------------------------------------------------------
+    console.log(`      --------------------------------------------------------
 
-id: ${i}
 
-Venue Name: ${event.venue.name}
+      id: ${i}
 
-Venue Location: ${event.venue.location}
+      Venue Name: ${event.venue.name}
 
-Date/Time: ${moment(event.datetime).format('MM/DD/YYYY hh:mm:ss')}`);
+      Venue Location: ${event.venue.location}
+
+      Date/Time: ${moment(event.datetime).format('MM/DD/YYYY hh:mm:ss')}
+    
+    `);
   });
 };
 
@@ -70,18 +62,55 @@ Plot: ${data.Plot}
 Actors: ${data.Actors}`);
 };
 
-// argument variables from command line
-const expr = process.argv.slice(2, 3).toString();
-const topic = process.argv.slice(3).join(' ').toString();
+// callback for Spotify api req
+const displaySpotify = (songs) => {
+  return songs.filter((song, i) => {
+    ({ songName, artists, previewUrl, albumName } = {
+      songName: song.name,
+      artists: song.artists.map((artist) => artist.name).join(', '),
+      previewUrl: song.preview_url,
+      albumName: song.album.name,
+    });
 
+    if (previewUrl === null) {
+      previewUrl = 'No Preview';
+    }
+
+    console.log(`
+      -------------------------------------------------------------------------------------------------------------------------
+            
+      ${i + 1}
+
+
+      Song Name: ${songName}
+
+      Artist(s): ${artists}
+
+      Album Name: ${albumName}
+
+      Preview Link: ${previewUrl}
+    `);
+  });
+};
+
+// api request to spotify
+const spotifyThisSong = () => {
+  const spotify = new Spotify(keys.spotify);
+
+  spotify
+    .search({ type: 'track', query: topic, limit: 50 })
+    .then((res) => res)
+    .catch((err) => console.log(new Error(err)))
+    .then((data) => data.tracks.items)
+    .catch((err) => console.log(new Error(err)))
+    .then(displaySpotify);
+};
+
+// Switch to decide which code to execute
 switch (expr) {
   // search Spotify
   case 'spotify-this-song':
-    spotify
-      .search({ type: 'track', query: topic, limit: 1 })
-      .then((res) => res.tracks.items[0])
-      .catch((err) => console.log(new Error(err)))
-      .then(displaySpotify);
+    spotifyThisSong();
     break;
 
   // search bands in town
@@ -185,11 +214,13 @@ switch (expr) {
       }
     });
     break;
+
+  // If it all fucks up
   default:
     console.log(`Could not evaluate command: ${expr}`);
 }
 
-fs.appendFile('log.txt', `${expr},${topic};`, (err) => {
+fs.appendFile('log.txt', `${expr},${topic}`, (err) => {
   if (err) {
     console.log(new Error(err));
   }
