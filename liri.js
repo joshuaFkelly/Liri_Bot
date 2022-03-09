@@ -1,10 +1,10 @@
 // read and set any environment variables with the dotenv package
 require('dotenv').config();
 
-// Require Axios for get requests
+// import Axios for get requests
 const axios = require('axios');
 
-// require Spotify Package installed in npm
+// import Spotify Package installed in npm
 const Spotify = require('node-spotify-api');
 
 // import momentJS to format dat/time
@@ -18,14 +18,53 @@ const spotify = new Spotify(keys.spotify);
 const omdb = keys.omdb;
 const bandsInTown = keys.bandsInTown;
 
-// Spotify promise callback
-const displaySpotify = (res) => {
-  console.log('Artist(s): ', res.tracks.items[0].artists[0].name);
-  console.log('Song Name: ', res.tracks.items[0].name);
-  console.log('Preview Link: ', res.tracks.items[0].preview_url);
-  console.log('Album Name: ', res.tracks.items[0].album.name);
+// callback to display spotify info
+const displaySpotify = (data) => {
+  console.log(`
+  Artist(s): ${data.artists[0].name}
+  Song Name: ${data.name}
+  Preview Link: ${data.preview_url}
+  Album Name: ${data.album.name}
+  `);
 };
 
+// callback to display concert info
+const displayConcert = (events) => {
+  events.forEach((event, i) => {
+    console.log(`
+          ---------------------------------------------------------
+          id: ${i}
+
+          Venue Name: ${event.venue.name}
+
+          Venue Location: ${event.venue.location}
+
+          Date/Time: ${moment(event.datetime).format('MM/DD/YYYY hh:mm:ss')}`);
+  });
+};
+
+// Callback to display movie info
+const displayMovie = (data) => {
+  console.log(`
+          Title: ${data.Title}
+
+          Release year: ${data.Year}
+
+          Movie Ratings: 
+            - imdbRating: ${data.imdbRating}
+            - ${data.Ratings[0].Source}: ${data.Ratings[0].Value}
+            - ${data.Ratings[1].Source}: ${data.Ratings[1].Value}
+
+          Country: ${data.Country}
+
+          Language: ${data.Language}
+
+          Plot: ${data.Plot}
+
+          Actors: ${data.Actors}`);
+};
+
+// argument variables from command line
 const expr = process.argv.slice(2, 3).toString();
 const song = process.argv.slice(3).join(' ').toString();
 const band = process.argv.slice(3).join('').toString();
@@ -36,8 +75,9 @@ switch (expr) {
   case 'spotify-this-song':
     spotify
       .search({ type: 'track', query: song, limit: 1 })
-      .then(displaySpotify)
-      .catch((err) => console.log(new Error(err)));
+      .then((res) => res.tracks.items[0])
+      .catch((err) => console.log(new Error(err)))
+      .then(displaySpotify);
     break;
 
   // search bands in town
@@ -59,18 +99,7 @@ switch (expr) {
         return data;
       })
       // Do After
-      .then((events) => {
-        events.forEach((event, i) => {
-          console.log('-----------------------------------------');
-          console.log('id: ', i);
-          console.log('Venue Name: ', event.venue.name);
-          console.log('Venue Location: ', event.venue.location);
-          console.log(
-            'Date/Time: ',
-            moment(event.datetime).format('MM/DD/YYYY hh:mm:ss')
-          );
-        });
-      });
+      .then(displayConcert);
     break;
 
   // search omdb
@@ -86,25 +115,7 @@ switch (expr) {
         console.log(err);
       })
       // Do After
-      .then((data) => {
-        console.log(`
-Title: ${data.Title}
-
-Release year: ${data.Year}
-
-Movie Ratings: 
-  - imdbRating: ${data.imdbRating}
-  - ${data.Ratings[0].Source}: ${data.Ratings[0].Value}
-  - ${data.Ratings[1].Source}: ${data.Ratings[1].Value}
-
-Country: ${data.Country}
-
-Language: ${data.Language}
-
-Plot: ${data.Plot}
-
-Actors: ${data.Actors}`);
-      });
+      .then(displayMovie);
     break;
 
   default:
