@@ -3,6 +3,7 @@ require('dotenv').config();
 
 // import fs package to read random.txt
 const fs = require('fs');
+
 // import Axios for get requests
 const axios = require('axios');
 
@@ -34,7 +35,7 @@ const goodbyeMsg = `
 
 // callback for Spotify api req
 const displaySpotify = (songs) => {
-  return songs.filter((song, i) => {
+  songs.filter((song, i) => {
     ({ songName, artists, previewUrl, albumName } = {
       songName: song.name,
       artists: song.artists.map((artist) => artist.name).join(', '),
@@ -61,6 +62,9 @@ const displaySpotify = (songs) => {
         Preview Link: ${previewUrl}
       `);
   });
+
+  // goodbye message
+  console.log(goodbyeMsg);
 };
 
 // api request to spotify
@@ -68,21 +72,14 @@ const spotifyThisSong = async (topic) => {
   // new spotify key
   const spotify = new Spotify(keys.spotify);
 
-  spotify
-    // get request
-    .search({ type: 'track', query: topic, limit: 50 })
-    // response
-    .then((res) => res)
-    // error if bad response
-    .catch((err) => console.log(new Error(err)))
-    // parse through data
-    .then((data) => data.tracks.items)
-    // error if cannot find parsed data
-    .catch((err) => console.log(new Error(err)))
-    // display data
-    .then(displaySpotify)
-    // error if cannot display
-    .catch((err) => console.log(new Error(err)));
+  // response data
+  const res = await spotify.search({ type: 'track', query: topic, limit: 50 });
+
+  // songs data
+  const songs = await res.tracks.items;
+
+  // display songs
+  return displaySpotify(songs);
 };
 
 // callback to display concert info
@@ -116,10 +113,10 @@ const concertThis = async (topic) => {
     `https://rest.bandsintown.com/artists/${topic}/events?app_id=${bandsInTown}`
   );
 
-  // manipulate response data
+  // event data
   const event = await res.data;
 
-  // display data
+  // display events
   return displayConcert(event);
 };
 
@@ -172,10 +169,10 @@ const movieThis = async (topic) => {
     `http://www.omdbapi.com/?t=${topic}&apikey=${omdb}`
   );
 
-  // manipulate data
+  // movie data
   const movie = await res.data;
 
-  // display data
+  // display movie
   return displayMovie(movie);
 };
 
