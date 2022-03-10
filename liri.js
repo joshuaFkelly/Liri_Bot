@@ -25,11 +25,11 @@ const topic = process.argv.slice(3).join(' ').toString();
 
 // goodbye message
 const goodbyeMsg = `
-                                        -------------------------------------------------------------
+                                    ----------------------------------------------------------------------------
 
-                                        **** Thanks for using my CLI app :) I hope you enjoyed! ****
+                                    **** Thanks for using my CLI app :) I hope you enjoyed your experience! ****
     
-                                        -------------------------------------------------------------
+                                    ----------------------------------------------------------------------------
 `;
 
 // callback for Spotify api req
@@ -93,36 +93,34 @@ const displayConcert = (events) => {
       eventLocation: event.venue.location,
       dateTime: event.datetime,
     });
-    console.log(`      --------------------------------------------------------
+    console.log(`      
+      --------------------------------------------------------
 
-
-      id: ${i}
+      
+      id: ${i + 1}
 
       Venue Name: ${eventName}
 
       Venue Location: ${eventLocation}
 
       Date/Time: ${moment(dateTime).format('MM/DD/YYYY HH:mm:ss')}
-    
     `);
   });
+  console.log(goodbyeMsg);
 };
 
 // api request to bands in town
 const concertThis = async (topic) => {
-  axios
-    // get request
-    .get(
-      `https://rest.bandsintown.com/artists/${topic}/events?app_id=${bandsInTown}`
-    )
-    // receive data
-    .then((res) => res.data)
-    // error if data not received
-    .catch((err) => console.log(new Error(err)))
-    // display data
-    .then(displayConcert)
-    // error if cannot display
-    .catch((err) => console.log(new Error(err)));
+  // response data
+  const res = await axios.get(
+    `https://rest.bandsintown.com/artists/${topic}/events?app_id=${bandsInTown}`
+  );
+
+  // manipulate response data
+  const event = await res.data;
+
+  // display data
+  return displayConcert(event);
 };
 
 // Callback to display movie info
