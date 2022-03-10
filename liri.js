@@ -20,29 +20,8 @@ const omdb = keys.omdb;
 const bandsInTown = keys.bandsInTown;
 
 // argument variables from command line
-const expr = process.argv.slice(2, 3).toString();
+const command = process.argv.slice(2, 3).toString();
 const topic = process.argv.slice(3).join(' ').toString();
-
-// Callback to display movie info
-const displayMovie = (data) => {
-  console.log(`
-Title: ${data.Title}
-
-Release year: ${data.Year}
-
-Movie Ratings: 
-  - imdbRating: ${data.imdbRating}
-  - ${data.Ratings[0].Source}: ${data.Ratings[0].Value}
-  - ${data.Ratings[1].Source}: ${data.Ratings[1].Value}
-
-Country: ${data.Country}
-
-Language: ${data.Language}
-
-Plot: ${data.Plot}
-
-Actors: ${data.Actors}`);
-};
 
 // callback for Spotify api req
 const displaySpotify = (songs) => {
@@ -59,24 +38,24 @@ const displaySpotify = (songs) => {
     }
 
     console.log(`
-      -------------------------------------------------------------------------------------------------------------------------
-            
-      ${i + 1}
-
-
-      Song Name: ${songName}
-
-      Artist(s): ${artists}
-
-      Album Name: ${albumName}
-
-      Preview Link: ${previewUrl}
-    `);
+        -------------------------------------------------------------------------------------------------------------------------
+              
+        ${i + 1}
+  
+  
+        Song Name: ${songName}
+  
+        Artist(s): ${artists}
+  
+        Album Name: ${albumName}
+  
+        Preview Link: ${previewUrl}
+      `);
   });
 };
 
 // api request to spotify
-const spotifyThisSong = () => {
+const spotifyThisSong = (topic) => {
   // new spotify key
   const spotify = new Spotify(keys.spotify);
 
@@ -121,7 +100,7 @@ const displayConcert = (events) => {
 };
 
 // api request to bands in town
-const concertThis = () => {
+const concertThis = (topic) => {
   axios
     // get request
     .get(
@@ -137,105 +116,118 @@ const concertThis = () => {
     .catch((err) => console.log(new Error(err)));
 };
 
+// Callback to display movie info
+const displayMovie = (data) => {
+  ({ title, year, rating, country, language, plot, actors, ratings } = {
+    title: data.Title,
+    year: data.Year,
+    rating: data.imdbRating,
+    country: data.Country,
+    language: data.Language,
+    plot: data.Plot,
+    actors: data.Actors,
+    ratings: data.Ratings.map((rating) => {
+      return `- ${rating.Source}: ${rating.Value}`;
+    }).join(`
+    `),
+  });
+
+  console.log(`
+  --------------------------------------------------------
+
+  Title: ${title}
+
+  Release year: ${year}
+
+  Movie Ratings:
+    - imdbRating: ${rating}
+    ${ratings} 
+
+  Country: ${country}
+
+  Language: ${language}
+
+  Plot: ${plot}
+
+  Actors: ${actors}
+  `);
+};
+
+// api request to omdb
+const movieThis = (topic) => {
+  // get request
+  axios
+    .get(`http://www.omdbapi.com/?t=${topic}&apikey=${omdb}`)
+    // response data
+    .then((res) => res.data)
+    // error if bad request
+    .catch((err) => console.log(err))
+    // display data
+    .then(displayMovie)
+    // error if cannot display data
+    .catch((err) => console.log(new Error(err)));
+};
+
+// function for do-what-it-says command
+const doWhatItSays = () => {
+  fs.readFile('./random.txt', 'utf-8', (err, data) => {
+    if (err) {
+      console.log(new Error(err));
+    }
+    const randomTxt = data.split(':');
+    const command = randomTxt[0];
+    const topic = randomTxt[1];
+    switch (command) {
+      case 'spotify-this-song':
+        spotifyThisSong(topic);
+        break;
+      case 'concert-this':
+        concertThis(topic);
+        break;
+      case 'movie-this':
+        movieThis(topic);
+        break;
+      default:
+        console.log(`Could not evaluate command: ${command}`);
+    }
+  });
+};
+
 // Switch to decide which code to execute
-switch (expr) {
+switch (command) {
   // search Spotify
   case 'spotify-this-song':
-    spotifyThisSong();
+    spotifyThisSong(topic);
     break;
 
   // search bands in town
   case 'concert-this':
-    concertThis();
+    concertThis(topic);
     break;
 
   // search omdb
   case 'movie-this':
-    axios
-      .get(`http://www.omdbapi.com/?t=${topic}&apikey=${omdb}`)
-      .then((res) => {
-        // Handle Success
-        return res.data;
-      })
-      .catch((err) => {
-        // Handle err
-        console.log(err);
-      })
-      // Do After
-      .then(displayMovie);
+    movieThis(topic);
     break;
 
-  // use command inside random.txt
+  // read command inside random.txt
   case 'do-what-it-says':
-    fs.readFile('./random.txt', 'utf-8', (err, data) => {
-      if (err) {
-        console.log(new Error(err));
-      }
-      const randomTxt = data.split(',');
-      const randomCommand = randomTxt[0];
-      const topic = randomTxt[1];
-
-      switch (randomCommand) {
-        // search Spotify
-        case 'spotify-this-song':
-          spotify
-            .search({ type: 'track', query: topic, limit: 1 })
-            .then((res) => res.tracks.items[0])
-            .catch((err) => console.log(new Error(err)))
-            .then(displaySpotify);
-          break;
-
-        // search bands in town
-        case 'concert-this':
-          axios
-            .get(
-              `https://rest.bandsintown.com/artists/${topic}/events?app_id=${bandsInTown}`
-            )
-            .then((res) => {
-              // Handle Success
-              return res.data;
-            })
-            .catch((err) => {
-              // Handle err
-              console.log(err);
-            })
-            // Do After
-            .then((data) => {
-              return data;
-            })
-            // Do After
-            .then(displayConcert);
-          break;
-
-        // search omdb
-        case 'movie-this':
-          axios
-            .get(`http://www.omdbapi.com/?t=${topic}&apikey=${omdb}`)
-            .then((res) => {
-              // Handle Success
-              return res.data;
-            })
-            .catch((err) => {
-              // Handle err
-              console.log(err);
-            })
-            // Do After
-            .then(displayMovie);
-          break;
-
-        default:
-          console.log(`Could not evaluate command: ${expr}`);
-      }
-    });
+    doWhatItSays(topic);
     break;
 
   // If it all fucks up
   default:
-    console.log(`Could not evaluate command: ${expr}`);
+    console.log(`Could not evaluate command: ${command}`);
 }
 
-fs.appendFile('log.txt', `${expr},${topic}`, (err) => {
-  if (err) {
-    console.log(new Error(err));
+// Log all the commands and their topics to this file
+fs.appendFile(
+  'log.txt',
+  `${command}:${topic},
+`,
+  (err) => {
+    if (err) {
+      console.log(new Error(err));
+    }
   }
-});
+);
