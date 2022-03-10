@@ -23,6 +23,15 @@ const bandsInTown = keys.bandsInTown;
 const command = process.argv.slice(2, 3).toString();
 const topic = process.argv.slice(3).join(' ').toString();
 
+// goodbye message
+const goodbyeMsg = `
+                                        -------------------------------------------------------------
+
+                                        **** Thanks for using my CLI app :) I hope you enjoyed! ****
+    
+                                        -------------------------------------------------------------
+`;
+
 // callback for Spotify api req
 const displaySpotify = (songs) => {
   return songs.filter((song, i) => {
@@ -55,7 +64,7 @@ const displaySpotify = (songs) => {
 };
 
 // api request to spotify
-const spotifyThisSong = (topic) => {
+const spotifyThisSong = async (topic) => {
   // new spotify key
   const spotify = new Spotify(keys.spotify);
 
@@ -100,7 +109,7 @@ const displayConcert = (events) => {
 };
 
 // api request to bands in town
-const concertThis = (topic) => {
+const concertThis = async (topic) => {
   axios
     // get request
     .get(
@@ -133,7 +142,7 @@ const displayMovie = (data) => {
   });
 
   console.log(`
-  --------------------------------------------------------
+  -----------------------------------------------------------------------------------------------------------------------------------------------
 
   Title: ${title}
 
@@ -150,45 +159,47 @@ const displayMovie = (data) => {
   Plot: ${plot}
 
   Actors: ${actors}
+  
+  -----------------------------------------------------------------------------------------------------------------------------------------------
+  
+  ${goodbyeMsg}
+  
   `);
 };
 
 // api request to omdb
-const movieThis = (topic) => {
-  // get request
-  axios
-    .get(`http://www.omdbapi.com/?t=${topic}&apikey=${omdb}`)
-    // response data
-    .then((res) => res.data)
-    // error if bad request
-    .catch((err) => console.log(err))
-    // display data
-    .then(displayMovie)
-    // error if cannot display data
-    .catch((err) => console.log(new Error(err)));
+const movieThis = async (topic) => {
+  // response data
+  const res = await axios.get(
+    `http://www.omdbapi.com/?t=${topic}&apikey=${omdb}`
+  );
+
+  // manipulate data
+  const movie = await res.data;
+
+  // display data
+  return displayMovie(movie);
 };
 
-// function for do-what-it-says command
+// do-what-it-says command
 const doWhatItSays = () => {
   fs.readFile('./random.txt', 'utf-8', (err, data) => {
     if (err) {
       console.log(new Error(err));
     }
     const randomTxt = data.split(':');
-    const command = randomTxt[0];
-    const topic = randomTxt[1];
-    switch (command) {
+    switch (randomTxt[0]) {
       case 'spotify-this-song':
-        spotifyThisSong(topic);
+        spotifyThisSong(randomTxt[1]);
         break;
       case 'concert-this':
-        concertThis(topic);
+        concertThis(randomTxt[1]);
         break;
       case 'movie-this':
-        movieThis(topic);
+        movieThis(randomTxt[1]);
         break;
       default:
-        console.log(`Could not evaluate command: ${command}`);
+        console.log(`Could not evaluate command: ${randomTxt[0]}`);
     }
   });
 };
