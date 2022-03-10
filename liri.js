@@ -23,24 +23,6 @@ const bandsInTown = keys.bandsInTown;
 const expr = process.argv.slice(2, 3).toString();
 const topic = process.argv.slice(3).join(' ').toString();
 
-// callback to display concert info
-const displayConcert = (events) => {
-  events.forEach((event, i) => {
-    console.log(`      --------------------------------------------------------
-
-
-      id: ${i}
-
-      Venue Name: ${event.venue.name}
-
-      Venue Location: ${event.venue.location}
-
-      Date/Time: ${moment(event.datetime).format('MM/DD/YYYY hh:mm:ss')}
-    
-    `);
-  });
-};
-
 // Callback to display movie info
 const displayMovie = (data) => {
   console.log(`
@@ -95,15 +77,64 @@ const displaySpotify = (songs) => {
 
 // api request to spotify
 const spotifyThisSong = () => {
+  // new spotify key
   const spotify = new Spotify(keys.spotify);
 
   spotify
+    // get request
     .search({ type: 'track', query: topic, limit: 50 })
+    // response
     .then((res) => res)
+    // error if bad response
     .catch((err) => console.log(new Error(err)))
+    // parse through data
     .then((data) => data.tracks.items)
+    // error if cannot find parsed data
     .catch((err) => console.log(new Error(err)))
-    .then(displaySpotify);
+    // display data
+    .then(displaySpotify)
+    // error if cannot display
+    .catch((err) => console.log(new Error(err)));
+};
+
+// callback to display concert info
+const displayConcert = (events) => {
+  events.forEach((event, i) => {
+    ({ eventName, eventLocation, dateTime } = {
+      eventName: event.venue.name,
+      eventLocation: event.venue.location,
+      dateTime: event.datetime,
+    });
+    console.log(`      --------------------------------------------------------
+
+
+      id: ${i}
+
+      Venue Name: ${eventName}
+
+      Venue Location: ${eventLocation}
+
+      Date/Time: ${moment(dateTime).format('MM/DD/YYYY HH:mm:ss')}
+    
+    `);
+  });
+};
+
+// api request to bands in town
+const concertThis = () => {
+  axios
+    // get request
+    .get(
+      `https://rest.bandsintown.com/artists/${topic}/events?app_id=${bandsInTown}`
+    )
+    // receive data
+    .then((res) => res.data)
+    // error if data not received
+    .catch((err) => console.log(new Error(err)))
+    // display data
+    .then(displayConcert)
+    // error if cannot display
+    .catch((err) => console.log(new Error(err)));
 };
 
 // Switch to decide which code to execute
@@ -115,24 +146,7 @@ switch (expr) {
 
   // search bands in town
   case 'concert-this':
-    axios
-      .get(
-        `https://rest.bandsintown.com/artists/${topic}/events?app_id=${bandsInTown}`
-      )
-      .then((res) => {
-        // Handle Success
-        return res.data;
-      })
-      .catch((err) => {
-        // Handle err
-        console.log(err);
-      })
-      // Do After
-      .then((data) => {
-        return data;
-      })
-      // Do After
-      .then(displayConcert);
+    concertThis();
     break;
 
   // search omdb
