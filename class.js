@@ -26,65 +26,32 @@ const topic = process.argv.slice(3).join(' ').toString();
 // which functions?
 
 class Request {
-  constructor(command, query){
+  constructor(command, query) {
     this.command = command;
     this.query = query
   }
 
-// goodbye message
- goodbyeMsg = () => {console.log(`
+  // goodbye message
+  goodbyeMsg = () => {
+    console.log(`
                                     ----------------------------------------------------------------------------
 
                                     **** Thanks for using my CLI app :) I hope you enjoyed your experience! ****
     
                                     ----------------------------------------------------------------------------
-`);}
-// console.log(this.command);
-//    // Switch to decide which code to execute
-// switch (this.command) {
-//   // search Spotify
-//   case 'spotify-this-song':
-//     const song = new SpotifyCommand(this.command, this.query);
-//     song.getSong();
-
-//     break;
-
-//   // search bands in town
-//   case 'concert-this':
-//     const concert = new BandsInTownCommand(keys.bandsInTown, this.command, this.query)
-//     concert.concertThis()
-//     break;
-
-//   // search omdb
-//   case 'movie-this':
-//     const movie = new OMDBCommand(keys.omdb, this.command, this.query)
-//     movie.movieThis()
-//     break;
-
-//   // If it all fucks up
-//   default:
-//     console.log(`Could not evaluate this.command: ${this.command}`);
-// }
-
-
-
+`);
   }
-
-
-
-
+}
 
 
 class SpotifyCommand extends Request {
-  constructor(api_key, command, query, goodbyeMsg){
+  constructor(api_key, command, query, goodbyeMsg) {
     super(command, query, goodbyeMsg)
-    // this.command = command;
-    // this.query = query
     this.api_key = api_key
   }
 
-  
-   async getSong() {
+
+  async spotifyThis() {
 
     // new spotify key
     const spotify = new Spotify(this.api_key);
@@ -132,37 +99,33 @@ class SpotifyCommand extends Request {
 
 
 
-class BandsInTownCommand {
-  constructor(api_key, command, query){
+class BandsInTownCommand extends Request{
+  constructor(api_key, command, query) {
+    super(command, query, goodbyeMsg)
     this.api_key = api_key;
-    this.command = command;
-    this.query = query;
   }
 
-// api request to bands in town
- concertThis = async () => {
-  // response data
-  const res = await axios.get(
-    `https://rest.bandsintown.com/artists/${this.query}/events?app_id=${this.api_key}`
-  );
+  // api request to bands in town
+  concertThis = async () => {
 
-  // event data
-  const events = await res.data;
+    // response data
+    const res = await axios.get(
+      `https://rest.bandsintown.com/artists/${this.query}/events?app_id=${this.api_key}`
+    );
+
+    // event data
+    const events = await res.data;
 
 
- // display data 
-  events.forEach((event, i) => {
-    // ({ eventName, eventLocation, dateTime } = {
-    //   eventName: event.venue.name,
-    //   eventLocation: event.venue.location,
-    //   dateTime: event.datetime,
-    // });
-    this.id = i + 1
-    this.eventName = event.venue.name;
-    this.eventLocation = event.venue.location;
-    this.dateTime = event.dateTime
+    // display data 
+    events.forEach((event, i) => {
 
-    console.log(`      
+      this.id = i + 1
+      this.eventName = event.venue.name;
+      this.eventLocation = event.venue.location;
+      this.dateTime = event.dateTime
+
+      console.log(`      
       --------------------------------------------------------
 
       
@@ -174,43 +137,43 @@ class BandsInTownCommand {
 
       Date/Time: ${moment(this.dateTime).format('MM/DD/YYYY HH:mm:ss')}
     `);
-  });
-  console.log(goodbyeMsg);
-};
+    });
+    this.goodbyeMsg()
+  };
 }
 
 
-class OMDBCommand {
-  constructor(api_key, command, query){
+class OMDBCommand extends Request{
+  constructor(api_key, command, query, goodbyeMsg) {
+    super(command, query)
     this.api_key = api_key;
-    this.command = command;
-    this.query = query;
+    this.goodbyeMsg = goodbyeMsg
   }
 
 
-// api request to omdb
- movieThis = async () => {
-  // response data
-  const res = await axios.get(
-    `http://www.omdbapi.com/?t=${this.query}&apikey=${this.api_key}`
-  );
+  // api request to omdb
+  movieThis = async () => {
+    // response data
+    const res = await axios.get(
+      `http://www.omdbapi.com/?t=${this.query}&apikey=${this.api_key}`
+    );
 
-  // movie data
-  const movie = await res.data;
+    // movie data
+    const movie = await res.data;
 
-  this.title = movie.Title;
-  this.year = movie.Year;
-  this.rating = movie.imdbRating;
-  this.country = movie.Country;
-  this.language = movie.Language;
-  this.plot = movie.Plot;
-  this.actors = movie.Actors;
-  this.ratings = movie.Ratings.map((rating) => {
-    return `- ${rating.Source}: ${rating.Value}`;
-  }).join(`
+    this.title = movie.Title;
+    this.year = movie.Year;
+    this.rating = movie.imdbRating;
+    this.country = movie.Country;
+    this.language = movie.Language;
+    this.plot = movie.Plot;
+    this.actors = movie.Actors;
+    this.ratings = movie.Ratings.map((rating) => {
+      return `- ${rating.Source}: ${rating.Value}`;
+    }).join(`
   `),
 
-  console.log(`
+      console.log(`
   -----------------------------------------------------------------------------------------------------------------------------------------------
 
   Title: ${this.title}
@@ -231,22 +194,22 @@ class OMDBCommand {
   
   -----------------------------------------------------------------------------------------------------------------------------------------------
   
-  ${goodbyeMsg}
+  ${this.goodbyeMsg()}
   
   `);
-};
- 
+  };
+
 };
 
 
 
 // Switch to decide which code to execute
 switch (command) {
+
   // search Spotify
   case 'spotify-this-song':
     const song = new SpotifyCommand(keys.spotify, command, topic);
-    song.getSong();
-
+    song.spotifyThis();
     break;
 
   // search bands in town
