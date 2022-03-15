@@ -16,36 +16,78 @@ const moment = require('moment');
 // import the keys.js file that holds SPOTIFY API info
 const keys = require('./keys.js');
 
-// access keys information
-const omdb = keys.omdb;
-
 // argument variables from command line
 const command = process.argv.slice(2, 3).toString();
 const topic = process.argv.slice(3).join(' ').toString();
 
+
+// lets start by making a spotify class
+// what props will i need?
+// which functions?
+
+class Request {
+  constructor(command, query){
+    this.command = command;
+    this.query = query
+  }
+
 // goodbye message
-const goodbyeMsg = `
+ goodbyeMsg = () => {console.log(`
                                     ----------------------------------------------------------------------------
 
                                     **** Thanks for using my CLI app :) I hope you enjoyed your experience! ****
     
                                     ----------------------------------------------------------------------------
-`;
-// lets start by making a spotify class
-// what props will i need?
-// which functions?
+`);}
+// console.log(this.command);
+//    // Switch to decide which code to execute
+// switch (this.command) {
+//   // search Spotify
+//   case 'spotify-this-song':
+//     const song = new SpotifyCommand(this.command, this.query);
+//     song.getSong();
 
-class SpotifyCommand {
-  constructor(api_key, command, query){
-    this.api_key = api_key;
-    this.command = command;
-    this.query = query
+//     break;
+
+//   // search bands in town
+//   case 'concert-this':
+//     const concert = new BandsInTownCommand(keys.bandsInTown, this.command, this.query)
+//     concert.concertThis()
+//     break;
+
+//   // search omdb
+//   case 'movie-this':
+//     const movie = new OMDBCommand(keys.omdb, this.command, this.query)
+//     movie.movieThis()
+//     break;
+
+//   // If it all fucks up
+//   default:
+//     console.log(`Could not evaluate this.command: ${this.command}`);
+// }
+
+
+
+  }
+
+
+
+
+
+
+class SpotifyCommand extends Request {
+  constructor(api_key, command, query, goodbyeMsg){
+    super(command, query, goodbyeMsg)
+    // this.command = command;
+    // this.query = query
+    this.api_key = api_key
   }
 
   
-  async getSong() {
+   async getSong() {
+
     // new spotify key
-    const spotify = new Spotify(keys.spotify);
+    const spotify = new Spotify(this.api_key);
 
     // response data
     const res = await spotify.search({
@@ -82,9 +124,9 @@ class SpotifyCommand {
         Preview Link: ${this.previewUrl}
       `);
 
-      // goodbye message
-      console.log(goodbyeMsg);
     });
+    // goodbye messageß
+    this.goodbyeMsg()
   }
 }
 
@@ -198,15 +240,6 @@ class OMDBCommand {
 
 
 
-
-
-
-
-
-
-
-
-
 // Switch to decide which code to execute
 switch (command) {
   // search Spotify
@@ -232,3 +265,4 @@ switch (command) {
   default:
     console.log(`Could not evaluate command: ${command}`);
 }
+
