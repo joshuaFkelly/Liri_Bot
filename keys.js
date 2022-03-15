@@ -12,4 +12,4 @@ let spotify = {
 let omdb = process.env.OMDB_ID;
 
 let bandsInTown = process.env.BANDS_ID;
-module.exports = { spotify, omdb };
+module.exports = { spotify, omdb, bandsInTown };

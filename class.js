@@ -18,7 +18,6 @@ const keys = require('./keys.js');
 
 // access keys information
 const omdb = keys.omdb;
-const bandsInTown = keys.bandsInTown;
 
 // argument variables from command line
 const command = process.argv.slice(2, 3).toString();
@@ -37,8 +36,8 @@ const goodbyeMsg = `
 // which functions?
 
 class SpotifyCommand {
-  constructor( command, query){
-    // this.api_key = api_key;
+  constructor(api_key, command, query){
+    this.api_key = api_key;
     this.command = command;
     this.query = query
   }
@@ -89,28 +88,144 @@ class SpotifyCommand {
   }
 }
 
+
+
+class BandsInTownCommand {
+  constructor(api_key, command, query){
+    this.api_key = api_key;
+    this.command = command;
+    this.query = query;
+  }
+
+// api request to bands in town
+ concertThis = async () => {
+  // response data
+  const res = await axios.get(
+    `https://rest.bandsintown.com/artists/${this.query}/events?app_id=${this.api_key}`
+  );
+
+  // event data
+  const events = await res.data;
+
+
+ // display data 
+  events.forEach((event, i) => {
+    // ({ eventName, eventLocation, dateTime } = {
+    //   eventName: event.venue.name,
+    //   eventLocation: event.venue.location,
+    //   dateTime: event.datetime,
+    // });
+    this.id = i + 1
+    this.eventName = event.venue.name;
+    this.eventLocation = event.venue.location;
+    this.dateTime = event.dateTime
+
+    console.log(`      
+      --------------------------------------------------------
+
+      
+      id: ${this.id}
+
+      Venue Name: ${this.eventName}
+
+      Venue Location: ${this.eventLocation}
+
+      Date/Time: ${moment(this.dateTime).format('MM/DD/YYYY HH:mm:ss')}
+    `);
+  });
+  console.log(goodbyeMsg);
+};
+}
+
+
+class OMDBCommand {
+  constructor(api_key, command, query){
+    this.api_key = api_key;
+    this.command = command;
+    this.query = query;
+  }
+
+
+// api request to omdb
+ movieThis = async () => {
+  // response data
+  const res = await axios.get(
+    `http://www.omdbapi.com/?t=${this.query}&apikey=${this.api_key}`
+  );
+
+  // movie data
+  const movie = await res.data;
+
+  this.title = movie.Title;
+  this.year = movie.Year;
+  this.rating = movie.imdbRating;
+  this.country = movie.Country;
+  this.language = movie.Language;
+  this.plot = movie.Plot;
+  this.actors = movie.Actors;
+  this.ratings = movie.Ratings.map((rating) => {
+    return `- ${rating.Source}: ${rating.Value}`;
+  }).join(`
+  `),
+
+  console.log(`
+  -----------------------------------------------------------------------------------------------------------------------------------------------
+
+  Title: ${this.title}
+
+  Release year: ${this.year}
+
+  Movie Ratings:
+    - imdbRating: ${this.rating}
+    ${this.ratings} 
+
+  Country: ${this.country}
+
+  Language: ${this.language}
+
+  Plot: ${this.plot}
+
+  Actors: ${this.actors}
+  
+  -----------------------------------------------------------------------------------------------------------------------------------------------
+  
+  ${goodbyeMsg}
+  
+  `);
+};
+ 
+};
+
+
+
+
+
+
+
+
+
+
+
+
 // Switch to decide which code to execute
 switch (command) {
   // search Spotify
   case 'spotify-this-song':
-    const song = new SpotifyCommand(command, topic);
-
+    const song = new SpotifyCommand(keys.spotify, command, topic);
     song.getSong();
+
     break;
 
   // search bands in town
   case 'concert-this':
-    concertThis(topic);
+    const concert = new BandsInTownCommand(keys.bandsInTown, command, topic)
+    concert.concertThis()
     break;
 
   // search omdb
   case 'movie-this':
-    movieThis(topic);
-    break;
-
-  // read command inside random.txt
-  case 'do-what-it-says':
-    doWhatItSays(topic);
+    const movie = new OMDBCommand(keys.omdb, command, topic)
+    movie.movieThis()
     break;
 
   // If it all fucks up
