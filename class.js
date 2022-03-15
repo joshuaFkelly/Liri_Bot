@@ -1,29 +1,12 @@
 // read and set any environment variables with the dotenv package
 require('dotenv').config();
 
-// import fs package to read random.txt
-const fs = require('fs');
-
-// import Axios for get requests
-const axios = require('axios');
-
-// import Spotify Package installed in npm
-const Spotify = require('node-spotify-api');
-
-// import momentJS to format dat/time
-const moment = require('moment');
-
 // import the keys.js file that holds SPOTIFY API info
 const keys = require('./keys.js');
 
 // argument variables from command line
 const command = process.argv.slice(2, 3).toString();
 const topic = process.argv.slice(3).join(' ').toString();
-
-
-// lets start by making a spotify class
-// what props will i need?
-// which functions?
 
 class Request {
   constructor(command, query) {
@@ -43,7 +26,6 @@ class Request {
   }
 }
 
-
 class SpotifyCommand extends Request {
   constructor(api_key, command, query, goodbyeMsg) {
     super(command, query, goodbyeMsg)
@@ -52,6 +34,9 @@ class SpotifyCommand extends Request {
 
 
   async spotifyThis() {
+
+    // import Spotify Package installed in npm
+    const Spotify = require('node-spotify-api');
 
     // new spotify key
     const spotify = new Spotify(this.api_key);
@@ -97,9 +82,7 @@ class SpotifyCommand extends Request {
   }
 }
 
-
-
-class BandsInTownCommand extends Request{
+class BandsInTownCommand extends Request {
   constructor(api_key, command, query) {
     super(command, query, goodbyeMsg)
     this.api_key = api_key;
@@ -107,6 +90,12 @@ class BandsInTownCommand extends Request{
 
   // api request to bands in town
   concertThis = async () => {
+
+    // import Axios for get requests
+    const axios = require('axios');
+
+    // import momentJS to format dat/time
+    const moment = require('moment');
 
     // response data
     const res = await axios.get(
@@ -142,8 +131,7 @@ class BandsInTownCommand extends Request{
   };
 }
 
-
-class OMDBCommand extends Request{
+class OMDBCommand extends Request {
   constructor(api_key, command, query, goodbyeMsg) {
     super(command, query)
     this.api_key = api_key;
@@ -153,6 +141,10 @@ class OMDBCommand extends Request{
 
   // api request to omdb
   movieThis = async () => {
+
+    // import Axios for get requests
+    const axios = require('axios');
+
     // response data
     const res = await axios.get(
       `http://www.omdbapi.com/?t=${this.query}&apikey=${this.api_key}`
@@ -200,8 +192,6 @@ class OMDBCommand extends Request{
   };
 
 };
-
-
 
 // Switch to decide which code to execute
 switch (command) {
