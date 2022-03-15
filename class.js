@@ -36,19 +36,22 @@ const goodbyeMsg = `
 // what props will i need?
 // which functions?
 
-class SpotifyClass {
-  constructor(topic) {
-    this.topic = topic;
-    this.keys = keys.spotify;
+class SpotifyCommand {
+  constructor( command, query){
+    // this.api_key = api_key;
+    this.command = command;
+    this.query = query
   }
-  async get() {
+
+  
+  async getSong() {
     // new spotify key
-    const spotifyReq = new Spotify(this.keys);
+    const spotify = new Spotify(keys.spotify);
 
     // response data
-    const res = await spotifyReq.search({
+    const res = await spotify.search({
       type: 'track',
-      query: this.topic,
+      query: this.query,
       limit: 50,
     });
 
@@ -90,9 +93,9 @@ class SpotifyClass {
 switch (command) {
   // search Spotify
   case 'spotify-this-song':
-    const SpotifyCommand = new SpotifyClass(topic);
+    const song = new SpotifyCommand(command, topic);
 
-    SpotifyCommand.get();
+    song.getSong();
     break;
 
   // search bands in town
